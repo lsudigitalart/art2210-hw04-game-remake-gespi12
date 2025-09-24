@@ -1,6 +1,8 @@
 var Snake;
 var scl = 20;
 var food;
+var foodBounceAmp = 50;    // amplitude in pixels (how far up/down)
+var foodBounceSpeed = 0.25; // how fast it bounces (radians per frame)
 
 function setup() {
     createCanvas(600, 600);
@@ -31,7 +33,8 @@ if (Snake.eat(food)) {
 }
 
 fill(255, 0, 100);
-rect(food.x, food.y, scl, scl);
+var offsetY = sin(frameCount * foodBounceSpeed) * foodBounceAmp;
+rect(food.x, food.y + offsetY, scl, scl);
 }
 
 function keyPressed() {
@@ -59,13 +62,28 @@ function Snake() {
     this.yspeed = 0;
 
     this.eat = function(pos) {
-        // positions are stored in pixel coords (multiples of scl)
-        // use exact match to detect eating
-        if (this.x === pos.x && this.y === pos.y) {
-            return true;
-        }
-        return false;
-    }
+  // compute the same vertical offset used for drawing the food
+  var offsetY = sin(frameCount * foodBounceSpeed) * foodBounceAmp;
+
+  // snake head rectangle
+  var headLeft = this.x;
+  var headTop = this.y;
+  var headRight = this.x + scl;
+  var headBottom = this.y + scl;
+
+  // food rectangle (with visual offset)
+  var foodLeft = pos.x;
+  var foodTop = pos.y + offsetY;
+  var foodRight = pos.x + scl;
+  var foodBottom = pos.y + scl + offsetY;
+
+  // axis-aligned rectangle overlap test
+  if (headRight > foodLeft && headLeft < foodRight &&
+      headBottom > foodTop && headTop < foodBottom) {
+    return true;
+  }
+  return false;
+}
 
     this.update = function() {
         this.x = this.x + this.xspeed * scl;
